@@ -25,6 +25,11 @@ def index_to_color(color_index: int) -> typing.Tuple:
     except:
         print(f'Failed at provided: {type(color_index)}, with value {color_index}')
 
+@dataclasses.dataclass
+class Position:
+    x: int
+    y: int
+
 class Figure:
     __next_color_index: int = 0
     BOUNDING_BOX_WIDTH: int = 4
