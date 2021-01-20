@@ -5,7 +5,6 @@ import random
 import numpy
 import dataclasses
 
-
 colors = {
     "RED": (255, 0, 0),
     "GREEN": (0, 255, 0),
@@ -25,10 +24,12 @@ def index_to_color(color_index: int) -> typing.Tuple:
     except:
         print(f'Failed at provided: {type(color_index)}, with value {color_index}')
 
+
 @dataclasses.dataclass
 class Position:
     x: int
     y: int
+
 
 class Figure:
     __next_color_index: int = 0
@@ -119,7 +120,8 @@ class Figure:
             points.append(Position(self.bounding_box_position.x + bounding_box_occupied_column,
                                    self.bounding_box_position.y + bounding_box_occupied_row))
         return points
-        
+
+
 class GameArea:
     EMPTY_CELL_VALUE: int = -1
 
@@ -143,6 +145,7 @@ class GameArea:
             if cell == GameArea.EMPTY_CELL_VALUE:
                 return False
         return True
+
 
 class Tetrislike:
     def __init__(self, game_area: GameArea = None):
@@ -195,8 +198,7 @@ class Tetrislike:
         self.collect_lines()
         self.spawn_new_figure()
         if self.is_figure_colliding(self.controlled_figure):
-            self.game_over = True # gameover
-
+            self.game_over = True  # gameover
 
     def __move(self, horizontal_displacement: int):
         self.controlled_figure.bounding_box_position.x += horizontal_displacement
@@ -229,3 +231,33 @@ def draw_figure(target_screen, x_pad: int, y_pad: int, scale: int, target_figure
                          [x_pad + scale * (abs_pos.x) + 1,
                           y_pad + scale * (abs_pos.y) + 1,
                           scale - 2, scale - 2])
+
+
+# Enginge part
+pygame.init()
+pygame.display.set_caption("Tetrislike")
+clock: pygame.time.Clock = pygame.time.Clock()
+fps: int = 30
+counter: int = 0
+game: Tetrislike = Tetrislike()
+keepRunning: bool = True
+
+# User interface part
+game_window_size = (400, 500)
+screen = pygame.display.set_mode(game_window_size)
+game_window_background = colors.get("WHITE")
+game_area_grid_color = colors.get("GRAY")
+game_area_horizontal_padding: int = int(game_window_size[0] / 20)
+game_area_vertical_padding: int = int(game_window_size[1] / 25)
+draw_square_side_length: int = int(game_window_size[0] / 17)
+main_font = pygame.font.SysFont('Arial', 25, True, False)
+main_font_color = colors.get("BLACK")
+warning_font = pygame.font.SysFont('Arial', 40, True, False)
+
+score_text = None
+level_text = None
+game_over_text = warning_font.render("GAME OVER", True, main_font_color)
+press_esc_text = warning_font.render("ESC to RESTART", True, main_font_color)
+
+tempColorIndex: int
+ticks_before_move_down: int = int(fps * game.move_down_scalar)
