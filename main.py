@@ -138,3 +138,89 @@ class GameArea:
             if cell == GameArea.EMPTY_CELL_VALUE:
                 return False
         return True
+
+class Tetrislike:
+    def __init__(self, game_area: GameArea = None):
+        if game_area is None:
+            self.game_area = GameArea(height=20, width=10)
+        else:
+            self.game_area = game_area
+        self.speed: float = 1
+        self.controlled_figure: Figure = None
+        self.score: int = 0
+        self.spawn_new_figure()
+        self.game_over: bool = False
+        self.level: int = 0
+        self.next_level_threshold: int = 20
+        self.move_down_scalar: float = 0.3
+
+    def spawn_new_figure(self):
+        self.controlled_figure: Figure = Figure(Position(int(self.game_area.width / 2), 0))
+
+    def is_figure_colliding(self, figure_to_check: Figure) -> bool:
+        for occupied_position in figure_to_check.get_absolute_occupied_positions():
+            # check if exceeding vertically
+            if occupied_position.y > self.game_area.height - 1:
+                return True
+
+            # check if exceeding horizontally
+            if occupied_position.x < 0 or occupied_position.x > self.game_area.width - 1:
+                return True
+
+            # check if occupied by another figure (or part of it)
+            if self.game_area.area[occupied_position.y, occupied_position.x] != GameArea.EMPTY_CELL_VALUE:
+                return True
+
+        return False
+
+    def handle_settle(self, figure_to_settle: Figure):
+        for occupied_position in figure_to_settle.get_absolute_occupied_positions():
+            self.game_area.area[occupied_position.y, occupied_position.x] = figure_to_settle.color_index
+
+    def collect_lines(self):
+        collected_lines_amount: int = 0
+        for i in range(self.game_area.height):  # from bottom, to top
+            if self.game_area.is_row_solid(i):
+                collected_lines_amount += 1
+                self.game_area.move_rows_down(i)
+        self.score += collected_lines_amount * self.game_area.width
+
+    def refresh_area(self):
+        self.handle_settle(self.controlled_figure)
+        self.collect_lines()
+        self.spawn_new_figure()
+        if self.is_figure_colliding(self.controlled_figure):
+            self.game_over = True # gameover
+
+
+    def __move(self, horizontal_displacement: int):
+        self.controlled_figure.bounding_box_position.x += horizontal_displacement
+        if self.is_figure_colliding(self.controlled_figure):
+            self.controlled_figure.bounding_box_position.x -= horizontal_displacement
+
+    def fig_move_right(self):
+        self.__move(1)
+
+    def fig_move_left(self):
+        self.__move(-1)
+
+    def fig_move_down(self):
+        self.controlled_figure.bounding_box_position.y += 1
+        if self.is_figure_colliding(self.controlled_figure):
+            self.controlled_figure.bounding_box_position.y -= 1
+            self.refresh_area()
+
+    def fig_rotate(self):
+        prev_rotation: int = self.controlled_figure.rotation
+        self.controlled_figure.rotate()
+        if self.is_figure_colliding(self.controlled_figure):
+            self.controlled_figure.rotation = prev_rotation
+
+
+def draw_figure(target_screen, x_pad: int, y_pad: int, scale: int, target_figure: Figure):
+    target_color = index_to_color(target_figure.color_index)
+    for abs_pos in target_figure.get_absolute_occupied_positions():
+        pygame.draw.rect(target_screen, target_color,
+                         [x_pad + scale * (abs_pos.x) + 1,
+                          y_pad + scale * (abs_pos.y) + 1,
+                          scale - 2, scale - 2])
