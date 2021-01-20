@@ -115,3 +115,26 @@ class Figure:
                                    self.bounding_box_position.y + bounding_box_occupied_row))
         return points
         
+class GameArea:
+    EMPTY_CELL_VALUE: int = -1
+
+    def __init__(self, height: int = 20, width: int = 10, horizontal_padding: int = 100, vertical_padding: int = 20):
+        self.height = height
+        self.width = width
+        self.area: numpy.ndarray = numpy.full((height, width), fill_value=GameArea.EMPTY_CELL_VALUE)
+        self.horizontal_padding = horizontal_padding
+        self.vertical_padding = vertical_padding
+
+    def override_target_row_with_upper(self, row_index_to_override: int):
+        self.area[row_index_to_override] = self.area[row_index_to_override - 1]
+
+    def move_rows_down(self, bottom_row_index: int):
+        row: numpy.ndarray
+        for i in range(bottom_row_index, 1, -1):
+            self.override_target_row_with_upper(i)
+
+    def is_row_solid(self, target_row_index: int) -> bool:
+        for cell in self.area[target_row_index]:
+            if cell == GameArea.EMPTY_CELL_VALUE:
+                return False
+        return True
