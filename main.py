@@ -26,6 +26,7 @@ def index_to_color(color_index: int) -> typing.Tuple:
         print(f'Failed at provided: {type(color_index)}, with value {color_index}')
 
 class Figure:
+    __next_color_index: int = 0
     BOUNDING_BOX_WIDTH: int = 4
     BOUNDING_BOX_HEIGHT: int = 4
 
@@ -95,6 +96,9 @@ class Figure:
             self.__shape_symbol = random.choice(list(Figure.__bounding_box_filled_indexes.keys()))
         self.possible_rotations: int = Figure.__bounding_box_filled_indexes.get(self.__shape_symbol).shape[0]
         self.rotation = rotation % self.possible_rotations
+        self.color_index: int = Figure.__next_color_index
+        Figure.__next_color_index = (Figure.__next_color_index + 1) % (len(
+            colors) - 3)  # -3 so to avoid using BLACK, GRAY and WHITE
 
     def rotate(self):
         self.rotation = (self.rotation + 1) % self.possible_rotations
