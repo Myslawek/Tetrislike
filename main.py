@@ -5,6 +5,11 @@ import random
 import numpy
 import dataclasses
 
+@dataclasses.dataclass
+class Position:
+    x: int
+    y: int
+
 class Figure:
     BOUNDING_BOX_WIDTH: int = 4
     BOUNDING_BOX_HEIGHT: int = 4
