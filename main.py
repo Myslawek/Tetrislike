@@ -261,3 +261,63 @@ press_esc_text = warning_font.render("ESC to RESTART", True, main_font_color)
 
 tempColorIndex: int
 ticks_before_move_down: int = int(fps * game.move_down_scalar)
+
+# main game loop part
+while keepRunning:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            keepRunning = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
+                game.fig_rotate()
+            elif event.key == pygame.K_RIGHT:
+                game.fig_move_right()
+            elif event.key == pygame.K_LEFT:
+                game.fig_move_left()
+            elif event.key == pygame.K_ESCAPE:
+                game.__init__()
+
+    if game.game_over:
+        screen.blit(game_over_text, [(game_window_size[0])/2 - 200, (game_window_size[1]/2) - 100])
+        screen.blit(press_esc_text, [(game_window_size[0])/2 - 200, game_window_size[1]/2])
+        pygame.display.flip()
+        continue
+
+    if game.score > game.next_level_threshold:
+        game.next_level_threshold += game.next_level_threshold
+        game.move_down_scalar = game.move_down_scalar - game.move_down_scalar * 0.25
+        game.level += 1
+
+    ticks_before_move_down -= 1
+    if ticks_before_move_down <= 0:
+        ticks_before_move_down = int(fps * game.move_down_scalar)
+        game.fig_move_down()
+
+    screen.fill(game_window_background)  # background
+
+    # draw grid
+    for row in range(game.game_area.height):  # rows
+        for column in range(game.game_area.width):  # columns in row
+            pygame.draw.rect(screen, game_area_grid_color,
+                             [game_area_horizontal_padding + draw_square_side_length * column,
+                              game_area_vertical_padding + draw_square_side_length * row,
+                              draw_square_side_length, draw_square_side_length], True)
+            tempColorIndex = game.game_area.area[row, column]
+            if tempColorIndex != GameArea.EMPTY_CELL_VALUE:
+                pygame.draw.rect(screen, index_to_color(tempColorIndex),
+                                 [game_area_horizontal_padding + draw_square_side_length * column + 1,
+                                  game_area_vertical_padding + draw_square_side_length * row + 1,
+                                  draw_square_side_length - 2, draw_square_side_length - 1])
+
+    draw_figure(screen, game_area_horizontal_padding, game_area_vertical_padding, draw_square_side_length,
+                game.controlled_figure)
+
+    score_text = main_font.render(f'Score: {game.score}', True, main_font_color)
+    level_text = main_font.render(f'Level: {game.level}', True, main_font_color)
+    screen.blit(score_text, [game_window_size[0] - 150, game_area_vertical_padding])
+    screen.blit(level_text, [game_window_size[0] - 150, game_area_vertical_padding * 2.5])
+
+    pygame.display.flip()
+    clock.tick(fps)
+
+pygame.quit()
